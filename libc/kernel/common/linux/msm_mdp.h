@@ -1,37 +1,47 @@
-/****************************************************************************
- ****************************************************************************
- ***
- ***   This header was automatically generated from a Linux kernel header
- ***   of the same name, to make information necessary for userspace to
- ***   call into the kernel available to libc.  It contains only constants,
- ***   structures, and macros generated from the original header, and thus,
- ***   contains no copyrightable information.
- ***
- ****************************************************************************
- ****************************************************************************/
+/* include/linux/msm_mdp.h
+ *
+ * Copyright (C) 2007 Google Incorporated
+ * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ *
+ * This software is licensed under the terms of the GNU General Public
+ * License version 2, as published by the Free Software Foundation, and
+ * may be copied, distributed, and modified under those terms.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 #ifndef _MSM_MDP_H_
 #define _MSM_MDP_H_
 
 #include <linux/types.h>
+#include <linux/fb.h>
 
 #define MSMFB_IOCTL_MAGIC 'm'
 #define MSMFB_GRP_DISP _IOW(MSMFB_IOCTL_MAGIC, 1, unsigned int)
 #define MSMFB_BLIT _IOW(MSMFB_IOCTL_MAGIC, 2, unsigned int)
+#define MSMFB_SUSPEND_SW_REFRESHER _IOW(MSMFB_IOCTL_MAGIC, 128, unsigned int)
+#define MSMFB_RESUME_SW_REFRESHER _IOW(MSMFB_IOCTL_MAGIC, 129, unsigned int)
+#define MSMFB_CURSOR _IOW(MSMFB_IOCTL_MAGIC, 130, struct fb_cursor)
 
+#define MDP_IMGTYPE2_START 0x10000
 enum {
- MDP_RGB_565,
- MDP_XRGB_8888,
- MDP_Y_CBCR_H2V2,
- MDP_ARGB_8888,
- MDP_RGB_888,
- MDP_Y_CRCB_H2V2,
- MDP_YCRYCB_H2V1,
- MDP_Y_CRCB_H2V1,
- MDP_Y_CBCR_H2V1,
- MDP_RGBA_8888,
- MDP_BGRA_8888,
- MDP_RGBX_8888,
- MDP_IMGTYPE_LIMIT
+	MDP_RGB_565,      /* RGB 565 planer */
+	MDP_XRGB_8888,    /* RGB 888 padded */
+	MDP_Y_CBCR_H2V2,  /* Y and CbCr, pseudo planer w/ Cb is in MSB */
+	MDP_ARGB_8888,    /* ARGB 888 */
+	MDP_RGB_888,      /* RGB 888 planer */
+	MDP_Y_CRCB_H2V2,  /* Y and CrCb, pseudo planer w/ Cr is in MSB */
+	MDP_YCRYCB_H2V1,  /* YCrYCb interleave */
+	MDP_Y_CRCB_H2V1,  /* Y and CrCb, pseduo planer w/ Cr is in MSB */
+	MDP_Y_CBCR_H2V1,   /* Y and CrCb, pseduo planer w/ Cr is in MSB */
+	MDP_RGBA_8888,    /* ARGB 888 */
+	MDP_BGRA_8888,	  /* ABGR 888 */
+	MDP_IMGTYPE_LIMIT,
+	MDP_BGR_565 = MDP_IMGTYPE2_START,      /* BGR 565 planer */
+	MDP_FB_FORMAT,    /* framebuffer format */
+	MDP_IMGTYPE_LIMIT2 /* Non valid image type after this enum */
 };
 
 enum {
@@ -39,6 +49,7 @@ enum {
  FB_IMG,
 };
 
+/* flag values */
 #define MDP_ROT_NOP 0
 #define MDP_FLIP_LR 0x1
 #define MDP_FLIP_UD 0x2
@@ -46,8 +57,9 @@ enum {
 #define MDP_ROT_180 (MDP_FLIP_UD|MDP_FLIP_LR)
 #define MDP_ROT_270 (MDP_ROT_90|MDP_FLIP_UD|MDP_FLIP_LR)
 #define MDP_DITHER 0x8
-#define MDP_BLUR 0x10
-#define MDP_BLEND_FG_PREMULT 0x20000
+
+#define MDP_DEINTERLACE 0x80000000
+#define MDP_SHARPENING  0x40000000
 
 #define MDP_TRANSP_NOP 0xffffffff
 #define MDP_ALPHA_NOP 0xff
@@ -64,7 +76,7 @@ struct mdp_img {
  uint32_t height;
  uint32_t format;
  uint32_t offset;
- int memory_id;
+	int memory_id;		/* the file descriptor */
 };
 
 struct mdp_blit_req {
@@ -75,6 +87,7 @@ struct mdp_blit_req {
  uint32_t alpha;
  uint32_t transp_mask;
  uint32_t flags;
+	int sharpening_strength;  /* -127 <--> 127, default 64 */
 };
 
 struct mdp_blit_req_list {
@@ -82,5 +95,4 @@ struct mdp_blit_req_list {
  struct mdp_blit_req req[];
 };
 
-#endif
-
+#endif /*_MSM_MDP_H_*/
