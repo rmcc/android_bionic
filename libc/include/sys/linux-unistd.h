@@ -134,6 +134,7 @@ int              __timer_gettime (timer_t, struct itimerspec*);
 int              __timer_getoverrun (timer_t);
 int              __timer_delete (timer_t);
 int              utimes (const char*, const struct timeval tvp[2]);
+int              adjtimex (struct timex *);
 int              sigaction (int, const struct sigaction *, struct sigaction *);
 int              sigprocmask (int, const sigset_t *, sigset_t *);
 int              __sigsuspend (int unused1, int unused2, unsigned mask);
@@ -171,6 +172,7 @@ int              setsockopt (int, int, int, const void *, socklen_t);
 int              getsockopt (int, int, int, void *, socklen_t *);
 int              sendmsg (int, const struct msghdr *, unsigned int);
 int              recvmsg (int, struct msghdr *, unsigned int);
+int              __socketcall (int, unsigned long*);
 int              sched_setscheduler (pid_t pid, int policy, const struct sched_param *param);
 int              sched_getscheduler (pid_t pid);
 int              sched_yield (void);
@@ -187,6 +189,8 @@ int              __syslog (int, char *, int);
 int              init_module (void *, unsigned long, const char *);
 int              delete_module (const char*, unsigned int);
 int              klogctl (int, char *, int);
+int              readlinkat (int, const char *, char *, size_t);
+int              signalfd (int, const sigset_t *, int);
 int              futex (void *, int, int, void *, void *, int);
 int              epoll_create (int size);
 int              epoll_ctl (int epfd, int op, int fd, struct epoll_event *event);
@@ -197,6 +201,11 @@ int              inotify_rm_watch (int, unsigned int);
 int              poll (struct pollfd *, unsigned int, long);
 int              __set_tls (void*);
 int              cacheflush (long start, long end, long flags);
+int              stime (time_t *);
+int              swapon (const char *, int);
+int              swapoff (const char *);
+int              sysinfo (struct sysinfo *);
+pid_t            getsid (pid_t pid);
 #ifdef __cplusplus
 }
 #endif

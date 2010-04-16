@@ -597,13 +597,12 @@ int pthread_join(pthread_t thid, void ** ret_val)
 
     for (thread = gThreadList; thread != NULL; thread = thread->next)
         if (thread == (pthread_internal_t*)thid)
-            break;
+            goto FoundIt;
 
-    if (!thread) {
-        pthread_mutex_unlock(&gThreadListLock);
-        return ESRCH;
-    }
+    pthread_mutex_unlock(&gThreadListLock);
+    return ESRCH;
 
+FoundIt:
     if (thread->attr.flags & PTHREAD_ATTR_FLAG_DETACHED) {
         pthread_mutex_unlock(&gThreadListLock);
         return EINVAL;
@@ -1362,22 +1361,12 @@ int pthread_cond_timeout_np(pthread_cond_t *cond,
                             pthread_mutex_t * mutex,
                             unsigned msecs)
 {
-    int oldvalue;
     struct timespec ts;
-    int status;
 
     ts.tv_sec = msecs / 1000;
     ts.tv_nsec = (msecs % 1000) * 1000000;
 
-    oldvalue = cond->value;
-
-    pthread_mutex_unlock(mutex);
-    status = __futex_wait(&cond->value, oldvalue, &ts);
-    pthread_mutex_lock(mutex);
-
-    if(status == (-ETIMEDOUT)) return ETIMEDOUT;
-
-    return 0;
+    return __pthread_cond_timedwait_relative(cond, mutex, &ts);
 }
 
 
@@ -1685,7 +1674,11 @@ int pthread_kill(pthread_t tid, int sig)
     int  old_errno = errno;
     pthread_internal_t * thread = (pthread_internal_t *)tid;
 
+    if (!thread)
+        return ESRCH;
+
     ret = tkill(thread->kernel_id, sig);
+
     if (ret < 0) {
         ret = errno;
         errno = old_errno;

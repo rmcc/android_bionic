@@ -52,6 +52,7 @@ libc_common_src_files := \
 	unistd/siginterrupt.c \
 	unistd/siglist.c \
 	unistd/signal.c \
+	unistd/signame.c \
 	unistd/sigsetmask.c \
 	unistd/sigsuspend.c \
 	unistd/sigwait.c \
@@ -170,21 +171,17 @@ libc_common_src_files := \
 	stdlib/tolower_.c \
 	stdlib/toupper_.c \
 	stdlib/wchar.c \
-	string/bcopy.c \
 	string/index.c \
 	string/memccpy.c \
 	string/memchr.c \
 	string/memmem.c \
-	string/memmove.c.arm \
 	string/memrchr.c \
 	string/memswap.c \
 	string/strcasecmp.c \
 	string/strcasestr.c \
 	string/strcat.c \
 	string/strchr.c \
-	string/strcmp.c \
 	string/strcoll.c \
-	string/strcpy.c \
 	string/strcspn.c \
 	string/strdup.c \
 	string/strerror.c \
@@ -192,7 +189,6 @@ libc_common_src_files := \
 	string/strlcat.c \
 	string/strlcpy.c \
 	string/strncat.c \
-	string/strncmp.c \
 	string/strncpy.c \
 	string/strndup.c \
 	string/strnlen.c \
@@ -259,7 +255,7 @@ libc_common_src_files := \
 	netbsd/resolv/res_mkquery.c \
 	netbsd/resolv/res_query.c \
 	netbsd/resolv/res_send.c \
-	netbsd/resolv/res_state.c.arm \
+	netbsd/resolv/res_state.c \
 	netbsd/resolv/res_cache.c \
 	netbsd/net/nsdispatch.c \
 	netbsd/net/getaddrinfo.c \
@@ -292,13 +288,25 @@ libc_common_src_files += \
 	arch-arm/bionic/tkill.S \
 	arch-arm/bionic/memcmp.S \
 	arch-arm/bionic/memcmp16.S \
-	arch-arm/bionic/memcpy.S \
 	arch-arm/bionic/memset.S \
 	arch-arm/bionic/setjmp.S \
 	arch-arm/bionic/sigsetjmp.S \
-	arch-arm/bionic/strlen.c.arm \
+	arch-arm/bionic/strlen.S \
+	arch-arm/bionic/strcpy.S \
+	arch-arm/bionic/strcmp.S \
 	arch-arm/bionic/syscall.S \
+	string/memmove.c.arm \
+	string/bcopy.c \
+	string/strncmp.c \
 	unistd/socketcalls.c
+
+ifeq ($(ALLOW_LGPL),true)
+libc_common_src_files += \
+	arch-arm/bionic/memcpy-neon.S
+else # !allow_lgpl
+libc_common_src_files += \
+	arch-arm/bionic/memcpy.S
+endif
 
 # These files need to be arm so that gdbserver
 # can set breakpoints in them without messing
@@ -328,11 +336,18 @@ libc_common_src_files += \
 	arch-x86/bionic/setjmp.S \
 	arch-x86/bionic/_setjmp.S \
 	arch-x86/bionic/vfork.S \
-	arch-x86/string/bzero.S \
-	arch-x86/string/memset.S \
-	arch-x86/string/memcmp.S \
-	arch-x86/string/memcpy.S \
+	arch-x86/bionic/syscall.S \
+	arch-x86/string/bcopy_wrapper.S \
+	arch-x86/string/memcpy_wrapper.S \
+	arch-x86/string/memmove_wrapper.S \
+	arch-x86/string/bzero_wrapper.S \
+	arch-x86/string/memcmp_wrapper.S \
+	arch-x86/string/memset_wrapper.S \
+	arch-x86/string/strcmp_wrapper.S \
+	arch-x86/string/strncmp_wrapper.S \
 	arch-x86/string/strlen.S \
+	arch-x86/string/strcpy.S \
+	string/memmove.c \
 	bionic/pthread.c \
 	bionic/pthread-timers.c \
 	bionic/ptrace.c
@@ -342,7 +357,41 @@ libc_arch_static_src_files := \
 	arch-x86/bionic/dl_iterate_phdr_static.c
 
 libc_arch_dynamic_src_files :=
-endif # x86
+else # !x86
+
+ifeq ($(TARGET_ARCH),sh)
+libc_common_src_files += \
+	arch-sh/bionic/__get_pc.S \
+	arch-sh/bionic/__get_sp.S \
+	arch-sh/bionic/_exit_with_stack_teardown.S \
+	arch-sh/bionic/_setjmp.S \
+	arch-sh/bionic/atomics_sh.c \
+	arch-sh/bionic/atomic_cmpxchg.S \
+	arch-sh/bionic/clone.S \
+	arch-sh/bionic/pipe.S \
+	arch-sh/bionic/memcpy.S \
+	arch-sh/bionic/memset.S \
+	arch-sh/bionic/bzero.S \
+	arch-sh/bionic/setjmp.S \
+	arch-sh/bionic/sigsetjmp.S \
+	arch-sh/bionic/syscall.S \
+	arch-sh/bionic/memmove.S \
+	arch-sh/bionic/__set_tls.c \
+	arch-sh/bionic/__get_tls.c \
+	arch-sh/bionic/ffs.S \
+	string/bcopy.c \
+	string/strcmp.c \
+	string/strncmp.c \
+	string/memcmp.c \
+	string/strlen.c \
+	bionic/eabi.c \
+	bionic/pthread.c \
+	bionic/pthread-timers.c \
+	bionic/ptrace.c \
+	unistd/socketcalls.c
+endif # sh
+
+endif # !x86
 endif # !arm
 
 # Define some common cflags
@@ -380,6 +429,10 @@ ifeq ($(TARGET_ARCH),arm)
 else # !arm
   ifeq ($(TARGET_ARCH),x86)
     libc_crt_target_cflags := -m32
+
+    # Enable recent IA friendly memory routines (such as for Atom)
+    # These will not work on the earlier x86 machines
+    libc_common_cflags += -mtune=i686 -DUSE_SSSE3 -DUSE_SSE2
   endif # x86
 endif # !arm
 
