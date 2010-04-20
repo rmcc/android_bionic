@@ -407,7 +407,7 @@ libc_common_cflags := \
 		-DNEED_PSELECT=1		\
 		-DINET6 \
 		-I$(LOCAL_PATH)/private \
-		-DUSE_DL_PREFIX
+		-DUSE_DL_PREFIX -march=armv6j
 
 ifeq ($(strip $(DEBUG_BIONIC_LIBC)),true)
   libc_common_cflags += -DDEBUG

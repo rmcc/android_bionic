@@ -141,8 +141,8 @@ __atomic_inc:
 /* replaced swp instruction with ldrex/strex for ARMv6 & ARMv7 */
 __atomic_swap:
 1:
-    .word 0xe1912f9f        /* ldrex   r2, [r1] */
-    .word 0xe1813f90        /* strex   r3, r0, [r1] */
+    ldrex   r2, [r1] 
+    strex   r3, r0, [r1] 
     cmp     r3, #0
     bne     1b
     mov     r0, r2
