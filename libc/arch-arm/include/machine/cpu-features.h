@@ -141,6 +141,14 @@
 #  define  __ARM_HAVE_SATURATED_ARITHMETIC 1
 #endif
 
+/* define _ARM_HAVE_LDREX_STREX for ARMv6 and ARMv7 architecure to be
+ * used in replacement of depricated swp instruction
+ */
+#if __ARM_ARCH__ >= 6
+#  define _ARM_HAVE_LDREX_STREX
+#endif
+
+
 /* define __ARM_HAVE_PC_INTERWORK when a direct assignment to the
  * pc register will switch into thumb/ARM mode depending on bit 0
  * of the new instruction address. Before ARMv5, this was not the
