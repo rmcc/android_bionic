@@ -137,6 +137,10 @@ extern ssize_t write(int, const void *, size_t);
 extern ssize_t pread(int, void *, size_t, off_t);
 extern ssize_t pwrite(int, void *, size_t, off_t);
 
+extern ssize_t pread64(int, void *, size_t, off64_t);
+extern ssize_t pwrite64(int, void *, size_t, off64_t);
+
+
 extern int dup(int);
 extern int dup2(int, int);
 extern int fcntl(int, int, ...);

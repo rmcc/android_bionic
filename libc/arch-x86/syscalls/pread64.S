@@ -2,11 +2,11 @@
 #include <sys/linux-syscalls.h>
 
     .text
-    .type __pread64, @function
-    .globl __pread64
+    .type pread64, @function
+    .globl pread64
     .align 4
 
-__pread64:
+pread64:
     pushl   %ebx
     pushl   %ecx
     pushl   %edx
